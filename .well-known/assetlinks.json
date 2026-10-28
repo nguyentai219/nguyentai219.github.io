@@ -1,8 +1,26 @@
-[{
-  "relation": ["delegate_permission/common.handle_all_urls"],
-  "target": {
-    "namespace": "android_app",
-    "package_name": "io.github.nguyentai219.mucaosu",
-    "sha256_cert_fingerprints": ["24:10:97:00:B3:10:E6:6A:3C:6B:70:67:E2:BC:A0:ED:12:EF:92:BB:59:AB:ED:4C:88:9A:AF:82:19:21:CE:06"]
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "io.github.nguyentai219.mucaosu",
+      "sha256_cert_fingerprints": [
+        "24:10:97:00:B3:10:E6:6A:3C:6B:70:67:E2:BC:A0:ED:12:EF:92:BB:59:AB:ED:4C:88:9A:AF:82:19:21:CE:06"
+      ]
+    }
+  },
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "io.github.nguyentai219.sokhachhang",
+      "sha256_cert_fingerprints": [
+        "24:10:97:00:B3:10:E6:6A:3C:6B:70:67:E2:BC:A0:ED:12:EF:92:BB:59:AB:ED:4C:88:9A:AF:82:19:21:CE:06"
+      ]
+    }
   }
-}]
+]
