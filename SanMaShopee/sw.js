@@ -1,6 +1,6 @@
 // Service Worker riêng của Săn Mã Shopee — chỉ xử lý cache có tiền tố "san-ma-shopee-"
-const CACHE = 'san-ma-shopee-1.1.0';
-const FILES = ['./', 'index.html', 'manifest.json', 'icon.svg'];
+const CACHE = 'san-ma-shopee-1.2.0';
+const FILES = ['./', 'index.html', 'manifest.json', 'icon.svg', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png'];
 const SCOPE = self.registration.scope;
 
 self.addEventListener('install', e => {

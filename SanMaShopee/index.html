@@ -4,9 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#ee4d2d">
-<title>Săn Mã Shopee 1.1.0</title>
+<title>Săn Mã Shopee 1.2.0</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <style>
 :root{--c:#ee4d2d;--c2:#ff7337;--bg:#f5f5f5;--card:#fff;--tx:#222;--mu:#777;--ok:#26aa99;--bd:#e5e5e5}
 @media (prefers-color-scheme:dark){:root{--bg:#121212;--card:#1e1e1e;--tx:#eee;--mu:#9a9a9a;--bd:#333}}
@@ -50,14 +53,30 @@ input[type=text],input[type=url],input[type=number],input[type=time]{border:1.5p
 .ed input{flex:1}
 #toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#333;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;display:none;z-index:20;max-width:90%}
 details summary{cursor:pointer;font-weight:600}
+.gcal{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin:10px 0}
+.gcal a{justify-content:center;padding:10px;font-size:14px}
+#installCard{display:none;border:2px solid var(--c)}
+#installCard ol{margin:6px 0 0;padding-left:20px;line-height:1.6}
 </style>
 </head>
 <body>
 <header>
   <h1>🛒 Săn Mã Shopee</h1>
-  <small>Nhắc giờ tung mã · mở nhanh trang mã · <span id="ver">v1.1.0</span></small>
+  <small>Nhắc giờ tung mã · mở nhanh trang mã · <span id="ver">v1.2.0</span></small>
 </header>
 <main>
+  <section class="card" id="installCard">
+    <h2>📲 Cài thành app trên điện thoại</h2>
+    <p class="mu" style="margin:0">Cài xong app có biểu tượng riêng, mở toàn màn hình, không có thanh địa chỉ.</p>
+    <button class="big" id="btnInstall" style="display:none">Cài app ngay</button>
+    <div id="installGuide" class="mu">
+      <ol>
+        <li>Mở trang này bằng <b>Chrome</b> (không mở trong Zalo/Facebook).</li>
+        <li>Bấm nút <b>⋮</b> góc trên bên phải.</li>
+        <li>Chọn <b>"Cài đặt ứng dụng"</b> (hoặc "Thêm vào màn hình chính" → <b>Cài đặt</b>).</li>
+      </ol>
+    </div>
+  </section>
   <section class="card">
     <div class="clock" id="clock">--:--:--</div>
     <div class="next-lbl" id="nextLbl">Khung giờ tiếp theo</div>
@@ -85,8 +104,11 @@ details summary{cursor:pointer;font-weight:600}
 
   <section class="card">
     <h2>Nhắc kể cả khi đóng app</h2>
-    <p class="mu" style="margin-top:0">Trình duyệt không cho web app tự báo khi đã đóng. Cách chắc chắn nhất: thêm lịch tung mã vào <b>Lịch</b> của điện thoại (Google Calendar), lịch sẽ báo trước mỗi khung giờ hằng ngày.</p>
-    <button id="btnIcs">📅 Tải lịch nhắc (.ics)</button>
+    <p class="mu" style="margin-top:0">Web app không tự báo được khi đã đóng. Cách chắc chắn nhất: thêm các khung giờ vào <b>Google Lịch</b>, lịch sẽ báo mỗi ngày.</p>
+    <p class="mu" style="margin:0"><b>Cách 1 — Google Lịch:</b> bấm từng khung giờ → Google Lịch mở ra → bấm <b>Lưu</b> (đã đặt lặp lại hằng ngày).</p>
+    <div class="gcal" id="gcal"></div>
+    <p class="mu" style="margin:0 0 8px"><b>Cách 2 — File lịch:</b> tải 1 file chứa tất cả khung giờ, có báo trước. Mở được bằng Lịch Samsung, Lịch iPhone, hoặc nhập vào Google Lịch trên máy tính (Cài đặt → Nhập).</p>
+    <div class="row"><button id="btnIcs">📅 Tải lịch nhắc (.ics)</button><button class="sec" id="btnIcsShare" style="display:none">Chia sẻ sang app Lịch</button></div>
   </section>
 
   <section class="card">
@@ -182,8 +204,8 @@ async function notify(title, body){
   if (!('Notification' in window) || Notification.permission !== 'granted') return;
   try{
     const reg = navigator.serviceWorker && await navigator.serviceWorker.getRegistration();
-    if (reg) reg.showNotification(title, {body, icon:'icon.svg', tag:'smsp', renotify:true, vibrate:[300,150,300]});
-    else new Notification(title, {body, icon:'icon.svg'});
+    if (reg) reg.showNotification(title, {body, icon:'icon-192.png', badge:'icon-192.png', tag:'smsp', renotify:true, vibrate:[300,150,300]});
+    else new Notification(title, {body, icon:'icon-192.png'});
   }catch(e){}
 }
 
@@ -276,12 +298,37 @@ function buildIcs(){
   lines.push('END:VCALENDAR');
   return lines.join('\r\n');
 }
+function icsFile(){ return new File([buildIcs()], 'lich-san-ma-shopee.ics', {type:'text/calendar'}); }
 $('btnIcs').onclick = ()=>{
-  const b = new Blob([buildIcs()], {type:'text/calendar'});
+  const b = icsFile();
   const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'lich-san-ma-shopee.ics';
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 5000);
   toast('Đã tải file lịch — mở file để thêm vào Lịch');
 };
+
+try{ if (navigator.canShare && navigator.canShare({files:[icsFile()]})) $('btnIcsShare').style.display=''; }catch(e){}
+$('btnIcsShare').onclick = async ()=>{ try{ await navigator.share({files:[icsFile()], title:'Lịch săn mã Shopee'}); }catch(e){} };
+function gcalUrl(s){
+  const t = new Date(), d = slotDate(t, s, slotDate(t, s) <= t), e = new Date(d.getTime()+5*60000);
+  const f = x => x.getFullYear()+pad(x.getMonth()+1)+pad(x.getDate())+'T'+pad(x.getHours())+pad(x.getMinutes())+'00';
+  const q = new URLSearchParams({action:'TEMPLATE', text:'🛒 Tung mã Shopee '+s, dates:f(d)+'/'+f(e),
+    details:'Mở app Săn Mã Shopee hoặc trang mã và bấm Lưu: '+$('mainOpen').href, recur:'RRULE:FREQ=DAILY'});
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone; if (tz) q.set('ctz', tz);
+  return 'https://calendar.google.com/calendar/render?'+q.toString();
+}
+function renderGcal(){ $('gcal').innerHTML = slots.map(s=>`<a class="btn sec" href="${esc(gcalUrl(s))}" target="_blank" rel="noopener">＋ ${s}</a>`).join(''); }
+
+// ---------- Cài app (PWA) ----------
+const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+let deferredPrompt = null;
+function renderInstall(){
+  $('installCard').style.display = isStandalone() ? 'none' : 'block';
+  $('btnInstall').style.display = deferredPrompt ? '' : 'none';
+  $('installGuide').style.display = deferredPrompt ? 'none' : '';
+}
+window.addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); deferredPrompt = e; renderInstall(); });
+window.addEventListener('appinstalled', ()=>{ deferredPrompt = null; toast('Đã cài app — mở từ biểu tượng "Săn Mã" trên màn hình chính'); renderInstall(); });
+$('btnInstall').onclick = async ()=>{ if (!deferredPrompt) return; deferredPrompt.prompt(); try{ await deferredPrompt.userChoice; }catch(e){} deferredPrompt = null; renderInstall(); };
 
 // ---------- Sự kiện cài đặt ----------
 $('btnWake').onclick = ()=>{ const on = !wake; store.set('wantWake', on); setWake(on); };
@@ -292,21 +339,21 @@ $('setTick').onchange = e=>{ cfg.tick = e.target.checked; saveCfg(); };
 $('setAuto').onchange = e=>{ cfg.auto = e.target.checked; saveCfg(); };
 $('setEarly').onchange = e=>{ cfg.early = Math.min(30, Math.max(0, +e.target.value||0)); saveCfg(); renderCfg(); };
 $('setOffset').onchange = e=>{ cfg.offset = Math.min(120, Math.max(-120, +e.target.value||0)); saveCfg(); renderCfg(); };
-$('addSlot').onclick = ()=>{ const v = $('newSlot').value; if (!v) return; slots.push(v); sortSlots(); store.set('slots', slots); renderSlotEdit(); renderSlots(); };
-$('resetSlots').onclick = ()=>{ slots = DEF_SLOTS.slice(); store.set('slots', slots); renderSlotEdit(); renderSlots(); };
-$('slotEdit').onclick = e=>{ const s = e.target.dataset.ds; if (!s) return; slots = slots.filter(x=>x!==s); store.set('slots', slots); renderSlotEdit(); renderSlots(); };
-$('linkEdit').onchange = e=>{ const i = e.target.dataset.i, f = e.target.dataset.f; if (i==null) return; links[i][f] = e.target.value.trim(); store.set('links', links); renderLinks(); };
-$('linkEdit').onclick = e=>{ const i = e.target.dataset.del; if (i==null) return; links.splice(+i,1); store.set('links', links); renderLinks(); };
+$('addSlot').onclick = ()=>{ const v = $('newSlot').value; if (!v) return; slots.push(v); sortSlots(); store.set('slots', slots); renderSlotEdit(); renderSlots(); renderGcal(); };
+$('resetSlots').onclick = ()=>{ slots = DEF_SLOTS.slice(); store.set('slots', slots); renderSlotEdit(); renderSlots(); renderGcal(); };
+$('slotEdit').onclick = e=>{ const s = e.target.dataset.ds; if (!s) return; slots = slots.filter(x=>x!==s); store.set('slots', slots); renderSlotEdit(); renderSlots(); renderGcal(); };
+$('linkEdit').onchange = e=>{ const i = e.target.dataset.i, f = e.target.dataset.f; if (i==null) return; links[i][f] = e.target.value.trim(); store.set('links', links); renderLinks(); renderGcal(); };
+$('linkEdit').onclick = e=>{ const i = e.target.dataset.del; if (i==null) return; links.splice(+i,1); store.set('links', links); renderLinks(); renderGcal(); };
 $('addLink').onclick = ()=>{
   const n = $('newName').value.trim(), u = safeUrl($('newUrl').value.trim());
   if (!n || !u){ toast('Nhập tên và link bắt đầu bằng https://'); return; }
   links.push({n, u}); store.set('links', links); $('newName').value=''; $('newUrl').value=''; renderLinks();
 };
-$('resetLinks').onclick = ()=>{ links = DEF_LINKS.slice(); store.set('links', links); renderLinks(); };
+$('resetLinks').onclick = ()=>{ links = DEF_LINKS.slice(); store.set('links', links); renderLinks(); renderGcal(); };
 // Mở khoá âm thanh sau lần chạm đầu (trình duyệt chặn âm thanh khi chưa chạm)
 document.addEventListener('pointerdown', ()=>{ if (!actx){ try{ actx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } else if (actx.state==='suspended') actx.resume(); }, {once:false, passive:true});
 
-renderCfg(); renderLinks(); renderSlotEdit(); renderSlots(); renderWake(); tick();
+renderCfg(); renderLinks(); renderSlotEdit(); renderSlots(); renderGcal(); renderInstall(); renderWake(); tick();
 setInterval(tick, 250);
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>

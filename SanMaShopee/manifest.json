@@ -1,13 +1,18 @@
 {
+  "id": "/SanMaShopee/",
   "name": "Săn Mã Shopee",
   "short_name": "Săn Mã",
-  "start_url": "./",
-  "scope": "./",
+  "description": "Nhắc giờ tung mã giảm giá Shopee và mở nhanh trang mã",
+  "start_url": "/SanMaShopee/",
+  "scope": "/SanMaShopee/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#ee4d2d",
   "theme_color": "#ee4d2d",
   "lang": "vi",
   "icons": [
-    {"src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable"}
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
   ]
 }
