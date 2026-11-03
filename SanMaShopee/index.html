@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ee4d2d">
+<title>Săn Mã Shopee 1.1.0</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<style>
+:root{--c:#ee4d2d;--c2:#ff7337;--bg:#f5f5f5;--card:#fff;--tx:#222;--mu:#777;--ok:#26aa99;--bd:#e5e5e5}
+@media (prefers-color-scheme:dark){:root{--bg:#121212;--card:#1e1e1e;--tx:#eee;--mu:#9a9a9a;--bd:#333}}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Roboto,sans-serif;background:var(--bg);color:var(--tx);padding-bottom:40px}
+header{background:linear-gradient(135deg,var(--c),var(--c2));color:#fff;padding:14px 16px calc(14px);position:sticky;top:0;z-index:5}
+header h1{margin:0;font-size:19px}
+header small{opacity:.85}
+main{max-width:640px;margin:0 auto;padding:12px}
+.card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.card h2{font-size:16px;margin:0 0 10px}
+.clock{font-size:15px;color:var(--mu);text-align:center}
+.next-lbl{text-align:center;margin-top:6px;font-size:15px}
+.count{font-size:56px;font-weight:800;text-align:center;font-variant-numeric:tabular-nums;color:var(--c);letter-spacing:1px;margin:4px 0}
+.count.hot{animation:blink .5s infinite alternate}
+@keyframes blink{to{opacity:.35}}
+.badge{display:inline-block;background:#fff3e0;color:#e65100;border-radius:8px;padding:2px 8px;font-size:12px;font-weight:600}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+button,.btn{border:0;border-radius:10px;padding:10px 14px;font-size:15px;font-weight:600;cursor:pointer;background:var(--c);color:#fff;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+button.sec{background:transparent;color:var(--c);border:1.5px solid var(--c)}
+button.sm{padding:6px 10px;font-size:13px}
+button.x{background:transparent;color:var(--mu);padding:4px 8px;font-size:18px}
+.big{width:100%;padding:16px;font-size:18px;margin-top:8px}
+.slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+.slot{border:1.5px solid var(--bd);border-radius:10px;padding:8px 10px;display:flex;align-items:center;justify-content:space-between;gap:6px}
+.slot.past{opacity:.5}
+.slot.next{border-color:var(--c);background:rgba(238,77,45,.07)}
+.slot.done{border-color:var(--ok)}
+.slot b{font-size:17px;font-variant-numeric:tabular-nums}
+.slot label{font-size:12px;color:var(--mu);display:flex;align-items:center;gap:4px}
+.links a.lk{display:flex;justify-content:space-between;align-items:center;padding:12px;border:1.5px solid var(--bd);border-radius:10px;margin-bottom:8px;color:var(--tx);text-decoration:none;font-weight:600}
+.links a.lk span{color:var(--c)}
+input[type=text],input[type=url],input[type=number],input[type=time]{border:1.5px solid var(--bd);border-radius:8px;padding:8px;font-size:15px;background:var(--card);color:var(--tx);min-width:0}
+.set{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--bd)}
+.set:last-child{border-bottom:0}
+.set .d{font-size:12px;color:var(--mu)}
+.sw{width:22px;height:22px;accent-color:var(--c)}
+.mu{color:var(--mu);font-size:13px;line-height:1.5}
+.tag{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--bd);border-radius:20px;padding:4px 4px 4px 10px;margin:3px;font-variant-numeric:tabular-nums}
+.ed{display:flex;gap:6px;margin-bottom:6px}
+.ed input{flex:1}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#333;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;display:none;z-index:20;max-width:90%}
+details summary{cursor:pointer;font-weight:600}
+</style>
+</head>
+<body>
+<header>
+  <h1>🛒 Săn Mã Shopee</h1>
+  <small>Nhắc giờ tung mã · mở nhanh trang mã · <span id="ver">v1.1.0</span></small>
+</header>
+<main>
+  <section class="card">
+    <div class="clock" id="clock">--:--:--</div>
+    <div class="next-lbl" id="nextLbl">Khung giờ tiếp theo</div>
+    <div class="count" id="count">--:--</div>
+    <div style="text-align:center" id="dayBadge"></div>
+    <a class="btn big" id="mainOpen" target="_blank" rel="noopener">Mở trang mã ngay</a>
+    <div class="row" style="margin-top:10px;justify-content:center">
+      <button class="sec sm" id="btnWake">🔆 Giữ màn hình sáng: TẮT</button>
+      <button class="sec sm" id="btnTest">🔔 Thử chuông</button>
+    </div>
+    <p class="mu" id="hint" style="margin:10px 0 0;text-align:center">Để nghe chuông đúng giờ, hãy để app mở và bật "Giữ màn hình sáng" khi gần tới giờ.</p>
+  </section>
+
+  <section class="card">
+    <h2>Khung giờ hôm nay</h2>
+    <div class="slots" id="slots"></div>
+    <p class="mu" style="margin:8px 0 0">Đánh dấu ✔ khi đã lưu xong mã của khung giờ đó (tự xoá mỗi ngày).</p>
+  </section>
+
+  <section class="card links">
+    <h2>Trang mã giảm giá</h2>
+    <div id="links"></div>
+    <p class="mu" style="margin:4px 0 0">Trên điện thoại có cài app Shopee, link sẽ mở thẳng trong app Shopee.</p>
+  </section>
+
+  <section class="card">
+    <h2>Nhắc kể cả khi đóng app</h2>
+    <p class="mu" style="margin-top:0">Trình duyệt không cho web app tự báo khi đã đóng. Cách chắc chắn nhất: thêm lịch tung mã vào <b>Lịch</b> của điện thoại (Google Calendar), lịch sẽ báo trước mỗi khung giờ hằng ngày.</p>
+    <button id="btnIcs">📅 Tải lịch nhắc (.ics)</button>
+  </section>
+
+  <section class="card">
+    <h2>Cài đặt</h2>
+    <div class="set"><div>Báo trước (phút)<div class="d">Chuông + rung + thông báo trước giờ tung mã</div></div><input type="number" id="setLead" min="0" max="60" style="width:70px"></div>
+    <div class="set"><div>Đếm ngược bíp 10 giây cuối</div><input type="checkbox" class="sw" id="setTick"></div>
+    <div class="set"><div>Tự mở trang mã khi tới giờ<div class="d">Mở trang đầu tiên trong danh sách, sớm hơn vài giây để kịp tải</div></div><input type="checkbox" class="sw" id="setAuto"></div>
+    <div class="set"><div>Mở sớm (giây)</div><input type="number" id="setEarly" min="0" max="30" style="width:70px"></div>
+    <div class="set"><div>Chỉnh lệch đồng hồ (giây)<div class="d">Nếu đồng hồ máy chậm so với Shopee, nhập số dương</div></div><input type="number" id="setOffset" min="-120" max="120" style="width:70px"></div>
+    <div class="set"><div>Thông báo hệ thống</div><button class="sec sm" id="btnNotif">Cho phép</button></div>
+
+    <details style="margin-top:10px"><summary>Sửa khung giờ tung mã</summary>
+      <div id="slotEdit" style="margin:8px 0"></div>
+      <div class="row"><input type="time" id="newSlot" value="10:00"><button class="sm" id="addSlot">Thêm</button><button class="sec sm" id="resetSlots">Mặc định</button></div>
+    </details>
+    <details style="margin-top:10px"><summary>Sửa danh sách trang mã</summary>
+      <div id="linkEdit" style="margin:8px 0"></div>
+      <div class="ed"><input type="text" id="newName" placeholder="Tên"><input type="url" id="newUrl" placeholder="https://shopee.vn/..."></div>
+      <div class="row"><button class="sm" id="addLink">Thêm</button><button class="sec sm" id="resetLinks">Mặc định</button></div>
+    </details>
+  </section>
+
+  <section class="card mu">
+    <b>Cách dùng nhanh:</b> trước giờ tung mã 1–2 phút, mở app → bật "Giữ màn hình sáng". Khi chuông kêu và hết đếm ngược, bấm "Mở trang mã ngay" rồi bấm <b>Lưu</b> các mã trên Shopee.
+    Ngày đôi (VD 11/11, 12/12) và ngày 15, 25 hằng tháng thường có nhiều mã lớn.<br>
+    App chỉ nhắc giờ và mở trang, không đăng nhập hay tự thao tác trên tài khoản Shopee của bạn. Khung giờ là giờ thường gặp, Shopee có thể thay đổi — sửa lại trong Cài đặt nếu cần.
+  </section>
+</main>
+<div id="toast"></div>
+
+<script>
+'use strict';
+// Khoá lưu trữ riêng của app (tiền tố smsp_) — không đụng dữ liệu app khác cùng tên miền
+const P = 'smsp_';
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem(P+k); return v==null ? d : JSON.parse(v); }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(P+k, JSON.stringify(v)); }catch(e){} }
+};
+const DEF_SLOTS = ['00:00','09:00','12:00','15:00','18:00','20:00','21:00'];
+const DEF_LINKS = [
+  {n:'Trang mã giảm giá Shopee', u:'https://shopee.vn/m/ma-giam-gia'},
+  {n:'Kho voucher của tôi', u:'https://shopee.vn/user/voucher-wallet'},
+  {n:'Mã Freeship Xtra', u:'https://shopee.vn/m/freeship-xtra'},
+  {n:'Flash Sale', u:'https://shopee.vn/flash_sale'}
+];
+let slots = store.get('slots', DEF_SLOTS.slice());
+let links = store.get('links', DEF_LINKS.slice());
+let cfg = Object.assign({lead:1, tick:true, auto:false, early:3, offset:0}, store.get('cfg', {}));
+const $ = id => document.getElementById(id);
+const pad = n => String(n).padStart(2,'0');
+const now = () => new Date(Date.now() + (Number(cfg.offset)||0)*1000);
+const dayKey = d => d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function toast(t){ const e=$('toast'); e.textContent=t; e.style.display='block'; clearTimeout(toast.t); toast.t=setTimeout(()=>e.style.display='none',2500); }
+function sortSlots(){ slots = [...new Set(slots.filter(s=>/^\d\d:\d\d$/.test(s)))].sort(); }
+function safeUrl(u){ try{ const x = new URL(u); return /^https?:$/.test(x.protocol) ? x.href : null; }catch(e){ return null; } }
+sortSlots();
+
+function specialDay(d){
+  const m = d.getMonth()+1, day = d.getDate();
+  if (m === day) return 'Ngày đôi '+day+'/'+m+' — siêu sale';
+  if (day === 15) return 'Giữa tháng — sale 15';
+  if (day === 25) return 'Ngày lương — sale 25';
+  return '';
+}
+function slotDate(base, s, addDay){
+  const [h,mi] = s.split(':').map(Number);
+  const d = new Date(base); d.setHours(h, mi, 0, 0);
+  if (addDay) d.setDate(d.getDate()+1);
+  return d;
+}
+function nextSlot(t){
+  for (const s of slots){ const d = slotDate(t, s); if (d > t) return {s, d}; }
+  if (!slots.length) return null;
+  return {s: slots[0], d: slotDate(t, slots[0], true)};
+}
+
+// ---------- Âm thanh / rung / thông báo ----------
+let actx = null;
+function beep(freq=880, ms=150, vol=.3){
+  try{
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.frequency.value = freq; o.type = 'square'; g.gain.value = vol;
+    o.connect(g); g.connect(actx.destination);
+    o.start(); o.stop(actx.currentTime + ms/1000);
+  }catch(e){}
+}
+function alarm(){ [0,250,500,900,1150,1400].forEach((t,i)=>setTimeout(()=>beep(i%2?1100:880,180),t)); vib([300,150,300,150,600]); }
+function vib(p){ try{ navigator.vibrate && navigator.vibrate(p); }catch(e){} }
+async function notify(title, body){
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  try{
+    const reg = navigator.serviceWorker && await navigator.serviceWorker.getRegistration();
+    if (reg) reg.showNotification(title, {body, icon:'icon.svg', tag:'smsp', renotify:true, vibrate:[300,150,300]});
+    else new Notification(title, {body, icon:'icon.svg'});
+  }catch(e){}
+}
+
+// ---------- Giữ màn hình sáng ----------
+let wake = null;
+async function setWake(on){
+  try{
+    if (on){ wake = await navigator.wakeLock.request('screen'); wake.addEventListener('release', ()=>{ wake=null; renderWake(); }); }
+    else if (wake){ await wake.release(); wake = null; }
+  }catch(e){ toast('Máy không hỗ trợ giữ màn hình sáng'); wake = null; }
+  renderWake();
+}
+function renderWake(){ $('btnWake').textContent = '🔆 Giữ màn hình sáng: ' + (wake ? 'BẬT' : 'TẮT'); }
+document.addEventListener('visibilitychange', ()=>{ if (document.visibilityState==='visible' && store.get('wantWake',false) && !wake) setWake(true); });
+
+// ---------- Hiển thị ----------
+function renderSlots(){
+  const t = now(), dk = dayKey(t), done = store.get('done', {});
+  if (done.day !== dk){ done.day = dk; done.s = []; store.set('done', done); }
+  const nx = nextSlot(t);
+  $('slots').innerHTML = slots.map(s=>{
+    const past = slotDate(t,s) <= t, isNext = nx && nx.s===s && nx.d.getDate()===t.getDate(), ok = done.s.includes(s);
+    return `<div class="slot ${past?'past':''} ${isNext?'next':''} ${ok?'done':''}"><b>${s}</b><label><input type="checkbox" data-s="${s}" ${ok?'checked':''}>Đã lưu</label></div>`;
+  }).join('') || '<p class="mu">Chưa có khung giờ.</p>';
+}
+$('slots').addEventListener('change', e=>{
+  const s = e.target.dataset.s; if (!s) return;
+  const done = store.get('done', {day:dayKey(now()), s:[]});
+  done.s = e.target.checked ? [...new Set([...done.s, s])] : done.s.filter(x=>x!==s);
+  store.set('done', done); renderSlots();
+});
+function renderLinks(){
+  const ok = links.filter(l=>safeUrl(l.u));
+  $('links').innerHTML = ok.map(l=>`<a class="lk" href="${esc(safeUrl(l.u))}" target="_blank" rel="noopener">${esc(l.n)}<span>Mở ›</span></a>`).join('') || '<p class="mu">Chưa có trang nào.</p>';
+  $('mainOpen').href = ok[0] ? safeUrl(ok[0].u) : '#';
+  $('linkEdit').innerHTML = links.map((l,i)=>`<div class="ed"><input type="text" data-i="${i}" data-f="n" value="${esc(l.n)}"><input type="url" data-i="${i}" data-f="u" value="${esc(l.u)}"><button class="x" data-del="${i}">✕</button></div>`).join('');
+}
+function renderSlotEdit(){
+  $('slotEdit').innerHTML = slots.map(s=>`<span class="tag">${s}<button class="x" data-ds="${s}">✕</button></span>`).join('');
+}
+function renderCfg(){
+  $('setLead').value = cfg.lead; $('setTick').checked = cfg.tick; $('setAuto').checked = cfg.auto;
+  $('setEarly').value = cfg.early; $('setOffset').value = cfg.offset;
+  $('btnNotif').textContent = !('Notification' in window) ? 'Không hỗ trợ' : Notification.permission==='granted' ? 'Đã bật' : 'Cho phép';
+}
+function saveCfg(){ store.set('cfg', cfg); }
+
+// ---------- Vòng lặp đếm ngược ----------
+let fired = {};
+let lastSec = -1;
+function tick(){
+  const t = now();
+  $('clock').textContent = 'Bây giờ: ' + pad(t.getHours())+':'+pad(t.getMinutes())+':'+pad(t.getSeconds()) + (cfg.offset?` (lệch ${cfg.offset>0?'+':''}${cfg.offset}s)`:'');
+  const sp = specialDay(t);
+  $('dayBadge').innerHTML = sp ? `<span class="badge">🔥 ${esc(sp)}</span>` : '';
+  const nx = nextSlot(t);
+  if (!nx){ $('count').textContent='--:--'; $('nextLbl').textContent='Chưa có khung giờ'; return; }
+  const left = Math.ceil((nx.d - t)/1000);
+  const h = Math.floor(left/3600), m = Math.floor(left%3600/60), s = left%60;
+  $('count').textContent = (h ? h+':'+pad(m) : pad(m)) + ':' + pad(s);
+  $('count').classList.toggle('hot', left <= 60);
+  $('nextLbl').textContent = 'Khung giờ tiếp theo: ' + nx.s + (nx.d.getDate()!==t.getDate() ? ' (ngày mai)' : '');
+  const id = dayKey(nx.d)+' '+nx.s;
+  fired[id] = fired[id] || {};
+  const f = fired[id];
+  const leadSec = (Number(cfg.lead)||0)*60;
+  if (leadSec && left <= leadSec && left > 10 && !f.lead){ f.lead=1; alarm(); notify('Sắp tung mã '+nx.s, 'Còn khoảng '+Math.round(left/60)+' phút. Mở app để chuẩn bị.'); }
+  if (cfg.tick && left <= 10 && left > 0 && left !== lastSec){ beep(left<=3?1200:700, 90, .25); }
+  if (cfg.auto && left <= (Number(cfg.early)||0) && left > -5 && !f.open){ f.open=1; const u=$('mainOpen').href; if (u && u!=='#' && !u.endsWith('#')) location.href = u; }
+  if (left <= 1 && !f.zero){ f.zero=1; setTimeout(()=>{ alarm(); notify('Đã tới giờ tung mã '+nx.s+'!', 'Mở trang mã và bấm Lưu ngay.'); renderSlots(); }, Math.max(0, nx.d - now())); }
+  lastSec = left;
+  if (s === 0 || left <= 1) renderSlots();
+}
+
+// ---------- Lịch .ics ----------
+function buildIcs(){
+  const t = new Date(), ymd = t.getFullYear()+pad(t.getMonth()+1)+pad(t.getDate());
+  const stamp = new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d+/,'');
+  const lead = Math.max(1, Number(cfg.lead)||1);
+  const u = $('mainOpen').href;
+  const lines = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//SanMaShopee//VI','CALSCALE:GREGORIAN','METHOD:PUBLISH','X-WR-CALNAME:Săn mã Shopee'];
+  slots.forEach(s=>{
+    const hm = s.replace(':','');
+    lines.push('BEGIN:VEVENT','UID:smsp-'+hm+'@sanmashopee','DTSTAMP:'+stamp,
+      'DTSTART:'+ymd+'T'+hm+'00','DURATION:PT5M','RRULE:FREQ=DAILY',
+      'SUMMARY:🛒 Tung mã Shopee '+s,'DESCRIPTION:Mở trang mã và bấm Lưu: '+u,'URL:'+u,
+      'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:Sắp tung mã Shopee '+s,'TRIGGER:-PT'+lead+'M','END:VALARM',
+      'END:VEVENT');
+  });
+  lines.push('END:VCALENDAR');
+  return lines.join('\r\n');
+}
+$('btnIcs').onclick = ()=>{
+  const b = new Blob([buildIcs()], {type:'text/calendar'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'lich-san-ma-shopee.ics';
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 5000);
+  toast('Đã tải file lịch — mở file để thêm vào Lịch');
+};
+
+// ---------- Sự kiện cài đặt ----------
+$('btnWake').onclick = ()=>{ const on = !wake; store.set('wantWake', on); setWake(on); };
+$('btnTest').onclick = ()=>{ alarm(); notify('Thử chuông', 'Chuông và thông báo hoạt động.'); };
+$('btnNotif').onclick = async ()=>{ if ('Notification' in window){ await Notification.requestPermission(); renderCfg(); } };
+$('setLead').onchange = e=>{ cfg.lead = Math.min(60, Math.max(0, +e.target.value||0)); saveCfg(); renderCfg(); };
+$('setTick').onchange = e=>{ cfg.tick = e.target.checked; saveCfg(); };
+$('setAuto').onchange = e=>{ cfg.auto = e.target.checked; saveCfg(); };
+$('setEarly').onchange = e=>{ cfg.early = Math.min(30, Math.max(0, +e.target.value||0)); saveCfg(); renderCfg(); };
+$('setOffset').onchange = e=>{ cfg.offset = Math.min(120, Math.max(-120, +e.target.value||0)); saveCfg(); renderCfg(); };
+$('addSlot').onclick = ()=>{ const v = $('newSlot').value; if (!v) return; slots.push(v); sortSlots(); store.set('slots', slots); renderSlotEdit(); renderSlots(); };
+$('resetSlots').onclick = ()=>{ slots = DEF_SLOTS.slice(); store.set('slots', slots); renderSlotEdit(); renderSlots(); };
+$('slotEdit').onclick = e=>{ const s = e.target.dataset.ds; if (!s) return; slots = slots.filter(x=>x!==s); store.set('slots', slots); renderSlotEdit(); renderSlots(); };
+$('linkEdit').onchange = e=>{ const i = e.target.dataset.i, f = e.target.dataset.f; if (i==null) return; links[i][f] = e.target.value.trim(); store.set('links', links); renderLinks(); };
+$('linkEdit').onclick = e=>{ const i = e.target.dataset.del; if (i==null) return; links.splice(+i,1); store.set('links', links); renderLinks(); };
+$('addLink').onclick = ()=>{
+  const n = $('newName').value.trim(), u = safeUrl($('newUrl').value.trim());
+  if (!n || !u){ toast('Nhập tên và link bắt đầu bằng https://'); return; }
+  links.push({n, u}); store.set('links', links); $('newName').value=''; $('newUrl').value=''; renderLinks();
+};
+$('resetLinks').onclick = ()=>{ links = DEF_LINKS.slice(); store.set('links', links); renderLinks(); };
+// Mở khoá âm thanh sau lần chạm đầu (trình duyệt chặn âm thanh khi chưa chạm)
+document.addEventListener('pointerdown', ()=>{ if (!actx){ try{ actx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } else if (actx.state==='suspended') actx.resume(); }, {once:false, passive:true});
+
+renderCfg(); renderLinks(); renderSlotEdit(); renderSlots(); renderWake(); tick();
+setInterval(tick, 250);
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
