@@ -1,0 +1,13 @@
+{
+  "name": "Săn Mã Shopee",
+  "short_name": "Săn Mã",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ee4d2d",
+  "theme_color": "#ee4d2d",
+  "lang": "vi",
+  "icons": [
+    {"src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable"}
+  ]
+}
